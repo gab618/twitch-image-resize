@@ -1,4 +1,5 @@
 const imageDownloader = require("image-downloader");
+const path = require("path");
 const gm = require("gm").subClass({ imageMagick: true });
 
 async function robot(image) {
@@ -7,8 +8,15 @@ async function robot(image) {
 
 async function convertImage(image) {
   return new Promise((resolve, reject) => {
-    const inputFile = `./image/${image}.png[0]`;
-    const outputFile = `./image/output/${image}-converted.png`;
+    // const inputFile = `./image/${image}.png[0]`;
+    const inputFile = path.resolve(__dirname, "..", "image", `${image}.png[0]`);
+    const outputFile = path.resolve(
+      __dirname,
+      "..",
+      "image",
+      "output",
+      `${image}-converted.png`
+    );
     const width = 30;
     const height = 30;
 
