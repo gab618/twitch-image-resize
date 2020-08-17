@@ -3,7 +3,7 @@ const robots = {
 };
 
 async function start() {
-  await robots.image("masoq3");
+  await robots.image();
 }
 
 start();

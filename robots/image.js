@@ -1,53 +1,56 @@
-const imageDownloader = require("image-downloader");
 const path = require("path");
+const fs = require("fs");
 const gm = require("gm").subClass({ imageMagick: true });
 
-async function robot(image) {
-  await convertImage(image);
+async function robot() {
+  const images = getAllFilesInImageDir();
+
+  for (image of images) {
+    console.log(`Converting '${image}'...`);
+    await convertImage(image);
+  }
+}
+
+function getAllFilesInImageDir() {
+  const directoryPath = path.join(__dirname, "..", "image");
+  const files = fs.readdirSync(directoryPath);
+  const imagesArray = new Array();
+
+  files.forEach((file) => {
+    const [filename, ext] = file.split(".");
+    if (ext === "png" || ext === "jpg" || ext === "jpeg" || ext === "gif") {
+      imagesArray.push(file);
+    }
+  });
+
+  return imagesArray;
 }
 
 async function convertImage(image) {
   return new Promise((resolve, reject) => {
-    // const inputFile = `./image/${image}.png[0]`;
-    const inputFile = path.resolve(__dirname, "..", "image", `${image}.png[0]`);
-    const outputFile = path.resolve(
-      __dirname,
-      "..",
-      "image",
-      "output",
-      `${image}-converted.png`
-    );
-    const width = 30;
-    const height = 30;
+    const inputFile = path.resolve(__dirname, "..", "image", `${image}[0]`);
+    const sizes = [28, 56, 112];
+    function outputFile(ratio) {
+      return path.resolve(
+        __dirname,
+        "..",
+        "image",
+        "output",
+        `${image}-${ratio}x.png`
+      );
+    }
 
-    gm()
-      .in(inputFile)
-      .out("(")
-      .out("-clone")
-      .out("0")
-      .out("-background", "white")
-      .out("-blur", "0x9")
-      .out("-resize", `${width}x${height}^`)
-      .out(")")
-      .out("(")
-      .out("-clone")
-      .out("0")
-      .out("-background", "white")
-      .out("-resize", `${width}x${height}`)
-      .out(")")
-      .out("-delete", "0")
-      .out("-gravity", "center")
-      .out("-compose", "over")
-      .out("-composite")
-      .out("-extent", `${width}x${height}`)
-      .write(outputFile, (error) => {
-        if (error) {
-          return reject(error);
-        }
-
-        console.log(`> [video-robot] Image converted: ${outputFile}`);
-        resolve();
-      });
+    for (size of sizes) {
+      gm()
+        .in(inputFile)
+        .resize(size, size, "!")
+        .write(outputFile(size), (error) => {
+          if (error) {
+            return reject(error);
+          }
+          resolve();
+        });
+    }
   });
 }
 
